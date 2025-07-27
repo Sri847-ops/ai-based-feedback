@@ -1,34 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const [userType, setUserType] = useState("citizen") // Toggle between "citizen" and "staff"
+  const [userType, setUserType] = useState("user")
   const [userName] = useState("John Doe")
   const [pendingComplaints] = useState(12)
 
+  useEffect(() => {
+    // Get user type from localStorage
+    const storedUserType = localStorage.getItem('userType')
+    if (storedUserType) {
+      setUserType(storedUserType)
+    }
+  }, [])
+
   const citizenNavItems = [
     { title: "Dashboard", href: "/", symbol: "📊" },
-    { title: "Submit Complaint", href: "/submit", symbol: "📝" },
-    { title: "Track Status", href: "/track", symbol: "🔍" },
+    { title: "Submit Complaint", href: "/user/complaint-form", symbol: "📝" },
+    { title: "My Complaints", href: "/user/complaints", symbol: "📋" },
     { title: "Help & FAQ", href: "/help", symbol: "❓" },
   ]
 
   const staffNavItems = [
     { title: "Dashboard", href: "/staff", symbol: "📊" },
-    { title: "All Complaints", href: "/staff/complaints", symbol: "📋" },
-    { title: "Assigned to Me", href: "/staff/assigned", symbol: "👤" },
-    { title: "Analytics", href: "/staff/analytics", symbol: "📈" },
+    { title: "All Complaints", href: "/staff", symbol: "📋" },
+    { title: "Complaint Details", href: "/staff/complaint-view", symbol: "👤" },
+    { title: "Analytics", href: "/staff", symbol: "📈" },
   ]
 
   const navItems = userType === "staff" ? staffNavItems : citizenNavItems
 
-  const toggleUserType = () => {
-    setUserType(userType === "citizen" ? "staff" : "citizen")
-    setIsUserMenuOpen(false)
-    setIsMenuOpen(false)
+  const handleSignOut = () => {
+    // Clear localStorage
+    localStorage.removeItem('token')
+    localStorage.removeItem('userType')
+    
+    // Redirect to login page
+    window.location.href = '/login'
   }
 
   return (
@@ -88,17 +99,16 @@ export default function Header() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-2">
-            {/* User Type Toggle */}
-            <button
-              onClick={toggleUserType}
+            {/* User Type Badge */}
+            <div
               className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                 userType === "staff"
-                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                  : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-blue-100 text-blue-800"
               }`}
             >
               {userType === "staff" ? "👩‍💼 Staff" : "👤 Citizen"}
-            </button>
+            </div>
 
             {/* Notifications for Staff */}
             {userType === "staff" && (
@@ -132,14 +142,6 @@ export default function Header() {
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-md shadow-lg z-50">
                   <div className="py-1">
-                    <button
-                      onClick={toggleUserType}
-                      className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-                    >
-                      <span>{userType === "staff" ? "👤" : "👩‍💼"}</span>
-                      <span>Switch to {userType === "staff" ? "Citizen" : "Staff"}</span>
-                    </button>
-                    <hr className="my-1 border-slate-200" />
                     <a
                       href="/profile"
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
@@ -155,7 +157,10 @@ export default function Header() {
                       <span>Settings</span>
                     </a>
                     <hr className="my-1 border-slate-200" />
-                    <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                    <button 
+                      onClick={handleSignOut}
+                      className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
                       <span>🚪</span>
                       <span>Sign Out</span>
                     </button>
@@ -179,7 +184,7 @@ export default function Header() {
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-200">
           <div className="container mx-auto px-4 py-4">
-            {/* User Info & Toggle */}
+            {/* User Info */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
               <div className="flex items-center space-x-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -190,14 +195,13 @@ export default function Header() {
                   <p className="text-sm text-slate-500 capitalize">{userType}</p>
                 </div>
               </div>
-              <button
-                onClick={toggleUserType}
+              <div
                 className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                   userType === "staff" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
                 }`}
               >
-                Switch to {userType === "staff" ? "Citizen" : "Staff"}
-              </button>
+                {userType === "staff" ? "Staff" : "Citizen"}
+              </div>
             </div>
 
             {/* Mobile Navigation */}
@@ -214,6 +218,17 @@ export default function Header() {
                 </a>
               ))}
             </nav>
+
+            {/* Mobile Sign Out */}
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <button 
+                onClick={handleSignOut}
+                className="flex items-center space-x-3 w-full px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              >
+                <span>🚪</span>
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
 import bcrypt from 'bcryptjs';
 
 const hashPassword = async () => {
-  const plainPassword = "your_password_here";
+  const plainPassword = "root";
   const hashed = await bcrypt.hash(plainPassword, 10);
   console.log(`Hashed Password: ${hashed}`);
 };

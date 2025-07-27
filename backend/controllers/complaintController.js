@@ -4,23 +4,24 @@ import { classifyComplaintPriority } from '../services/openaiService.js';
 // Submit a new complaint
 export const submitComplaint = async (req, res) => {
     try {
-      const { createdBy, title, description, address, pincode, assignedTo } = req.body;
+      const { title, description, address, pincode, category, priority } = req.body;
   
-      if (!createdBy || !title || !description || !address || !pincode) {
-        return res.status(400).json({ error: 'All fields are required' });
+      if (!title || !description || !address || !pincode || !category) {
+        return res.status(400).json({ error: 'All required fields must be provided' });
       }
   
-      const priority = await classifyComplaintPriority(description);
+      const aiPriority = await classifyComplaintPriority(description);
   
       const newComplaint = new Complaint({
         title,
         description,
         address,
         pincode,
-        priority,
+        priority: priority || aiPriority,
         status: 'pending',
-        createdBy,           // used as per schema
-        assignedTo: assignedTo || null
+        category,
+        createdBy: req.body.createdBy || 'anonymous', // You can get this from auth later
+        assignedTo: null
       });
   
       await newComplaint.save();
@@ -35,30 +36,30 @@ export const submitComplaint = async (req, res) => {
     }
   };
 
-// Get all complaints
+// Get all complaints (for staff)
 export const getAllComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find().populate('createdBy', 'email');
+    const complaints = await Complaint.find().sort({ createdAt: -1 });
     res.status(200).json(complaints);
-  } catch (err) {
-    console.error('Error fetching complaints:', err);
-    res.status(500).json({ error: 'Server error fetching complaints' });
+  } catch (error) {
+    console.error('Error fetching complaints:', error);
+    res.status(500).json({ error: 'Server error while fetching complaints' });
   }
 };
 
-// Get complaints filtered by priority
+// Get complaints by priority
 export const getComplaintsByPriority = async (req, res) => {
   try {
     const { priority } = req.params;
-    const complaints = await Complaint.find({ priority });
+    const complaints = await Complaint.find({ priority }).sort({ createdAt: -1 });
     res.status(200).json(complaints);
-  } catch (err) {
-    console.error('Error fetching complaints by priority:', err);
-    res.status(500).json({ error: 'Server error fetching complaints' });
+  } catch (error) {
+    console.error('Error fetching complaints by priority:', error);
+    res.status(500).json({ error: 'Server error while fetching complaints' });
   }
 };
 
-// Mark a complaint as resolved
+// Mark complaint as resolved
 export const markComplaintResolved = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,14 +68,54 @@ export const markComplaintResolved = async (req, res) => {
       { status: 'resolved' },
       { new: true }
     );
-
+    
     if (!complaint) {
       return res.status(404).json({ error: 'Complaint not found' });
     }
+    
+    res.status(200).json({
+      message: 'Complaint marked as resolved',
+      complaint
+    });
+  } catch (error) {
+    console.error('Error updating complaint:', error);
+    res.status(500).json({ error: 'Server error while updating complaint' });
+  }
+};
 
-    res.status(200).json({ message: 'Complaint marked as resolved', complaint });
-  } catch (err) {
-    console.error('Error resolving complaint:', err);
-    res.status(500).json({ error: 'Server error resolving complaint' });
+// Get complaints for the authenticated user
+export const getUserComplaints = async (req, res) => {
+  try {
+    const userId = req.user.userId; // From JWT token
+    
+    const complaints = await Complaint.find({ createdBy: userId })
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(complaints);
+  } catch (error) {
+    console.error('Error fetching user complaints:', error);
+    res.status(500).json({ error: 'Server error while fetching user complaints' });
+  }
+};
+
+// Get complaint statistics for the authenticated user
+export const getUserStats = async (req, res) => {
+  try {
+    const userId = req.user.userId; // From JWT token
+    
+    const total = await Complaint.countDocuments({ createdBy: userId });
+    const pending = await Complaint.countDocuments({ createdBy: userId, status: 'pending' });
+    const inProgress = await Complaint.countDocuments({ createdBy: userId, status: 'in-progress' });
+    const resolved = await Complaint.countDocuments({ createdBy: userId, status: 'resolved' });
+    
+    res.status(200).json({
+      total,
+      pending,
+      inProgress,
+      resolved
+    });
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    res.status(500).json({ error: 'Server error while fetching user statistics' });
   }
 };
