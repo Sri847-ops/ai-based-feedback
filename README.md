@@ -1,4 +1,4 @@
-# 🏛️ AI-Based Local Government Feedback & Escalation System
+# 🏛️ CivicPulse - AI-Based Local Government Feedback & Escalation System
 
 A smart civic complaint management system where citizens can raise issues, AI classifies and routes them to the correct department, and government staff can track, resolve, and escalate issues with automation.
 
