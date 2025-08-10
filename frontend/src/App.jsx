@@ -1,18 +1,25 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import Header from './components/header';
-import UserDashboard from './pages/user/UserDashboard';
-import StaffDashboard from './pages/staff/StaffDashboard';
-import LoginPage from './pages/LoginPage';
-import ComplaintList from './pages/user/ComplaintList';
-import ComplaintForm from './pages/user/ComplaintForm';
-import ComplaintView from './pages/staff/ComplaintView';
-import './index.css';
+import React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
+import Header from "./components/header";
+import Footer from "./components/footer";
+import UserDashboard from "./pages/user/UserDashboard";
+import StaffDashboard from "./pages/staff/StaffDashboard";
+import LoginPage from "./pages/LoginPage";
+import ComplaintList from "./pages/user/ComplaintList";
+import ComplaintForm from "./pages/user/ComplaintForm";
+import ComplaintView from "./pages/staff/ComplaintView";
+import "./index.css";
 
 // Simple auth utility
 function getAuth() {
-  const token = localStorage.getItem('token');
-  const userType = localStorage.getItem('userType');
+  const token = localStorage.getItem("token");
+  const userType = localStorage.getItem("userType");
   return { token, userType };
 }
 
@@ -21,17 +28,17 @@ function ProtectedRoute({ children, allowedRoles }) {
   if (!token) return <Navigate to="/login" replace />;
   if (allowedRoles && !allowedRoles.includes(userType)) {
     // If user is logged in but not allowed, redirect to their dashboard
-    return <Navigate to={userType === 'staff' ? '/staff' : '/'} replace />;
+    return <Navigate to={userType === "staff" ? "/staff" : "/"} replace />;
   }
   return children;
 }
 
 function AppContent() {
   const location = useLocation();
-  const hideHeader = location.pathname === '/login';
+  const hideHeaderFooter = location.pathname === "/login";
   return (
     <>
-      {!hideHeader && <Header />}
+      {!hideHeaderFooter && <Header />}
       <main className="container mx-auto px-4 py-8">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -77,6 +84,7 @@ function AppContent() {
           />
         </Routes>
       </main>
+      {!hideHeaderFooter && <Footer />}
     </>
   );
 }
