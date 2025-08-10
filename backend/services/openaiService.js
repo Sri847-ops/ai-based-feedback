@@ -9,16 +9,17 @@ const client = new OpenAI({
 })
 
 const systemPrompt = `
-You are a civic issue evaluator. Given a complaint description, classify its urgency into one of the following categories:
-- "high": requires immediate attention (e.g. sewage overflow, major road damage, water pipe burst, etc.)
+You are a civic issue evaluator. Classify the urgency of the given complaint into one of:
+- "high": requires immediate attention (e.g. sewage overflow, major road damage, water pipe burst)
 - "medium": important but not critical (e.g. minor leaks, recurring garbage issues)
 - "low": non-urgent (e.g. suggestion, cosmetic complaints)
 
-Respond ONLY with a JSON:
-{
-  "priority": "high" | "medium" | "low"
-}
-`
+Output EXACTLY and ONLY a valid JSON object in this format:
+{"priority": "high"}
+
+Do not include any explanation, text, or formatting outside the JSON. Please don't give any content other than the JSON object.
+`;
+
 
 export async function classifyComplaintPriority(description) {
   const messages = [
@@ -28,7 +29,7 @@ export async function classifyComplaintPriority(description) {
 
   try {
     const response = await client.chat.completions.create({
-      model: "deepseek-ai/DeepSeek-R1",
+      model: "deepseek-ai/DeepSeek-V3",
       max_tokens: 100,
       temperature: 0.3,
       top_p: 0.9,
