@@ -1,89 +1,81 @@
-import React, { useState } from 'react';
-import { MapPin, AlertTriangle, Upload, Send, ArrowLeft } from 'lucide-react';
+import React, { useState } from "react";
+import { MapPin, AlertTriangle, Upload, Send, ArrowLeft } from "lucide-react";
 
 export default function ComplaintForm() {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    address: '',
-    pincode: '',
-    category: '',
-    priority: 'medium',
-    contactNumber: '',
-    email: ''
+    title: "",
+    description: "",
+    address: "",
+    pincode: "",
+    category: "",
+    contactNumber: "",
+    email: "",
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const categories = [
-    'Infrastructure',
-    'Sanitation',
-    'Water Supply',
-    'Roads & Transport',
-    'Street Lighting',
-    'Garbage Collection',
-    'Noise Pollution',
-    'Air Pollution',
-    'Other'
-  ];
-
-  const priorities = [
-    { value: 'low', label: 'Low', color: 'text-green-600' },
-    { value: 'medium', label: 'Medium', color: 'text-yellow-600' },
-    { value: 'high', label: 'High', color: 'text-red-600' }
+    "Infrastructure",
+    "Sanitation",
+    "Water Supply",
+    "Roads & Transport",
+    "Street Lighting",
+    "Garbage Collection",
+    "Noise Pollution",
+    "Air Pollution",
+    "Other",
   ];
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        window.location.href = '/login';
+        window.location.href = "/login";
         return;
       }
 
       // Decode JWT to get user ID
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const userId = payload.userId;
 
-      const response = await fetch('/api/complaints/submit', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const response = await fetch("/api/complaints/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
-          createdBy: userId
-        })
+          createdBy: userId,
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit complaint');
+        throw new Error(errorData.error || "Failed to submit complaint");
       }
 
-      const data = await response.json();
+      await response.json();
       setSuccess(true);
       setFormData({
-        title: '',
-        description: '',
-        address: '',
-        pincode: '',
-        category: '',
-        priority: 'medium',
-        contactNumber: '',
-        email: ''
+        title: "",
+        description: "",
+        address: "",
+        pincode: "",
+        category: "",
+        contactNumber: "",
+        email: "",
       });
     } catch (error) {
-      console.error('Error submitting complaint:', error);
-      alert(error.message || 'Failed to submit complaint. Please try again.');
+      console.error("Error submitting complaint:", error);
+      alert(error.message || "Failed to submit complaint. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -96,8 +88,13 @@ export default function ComplaintForm() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Send className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Complaint Submitted!</h2>
-          <p className="text-gray-600 mb-6">Your complaint has been successfully submitted. We'll review it and get back to you soon.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Complaint Submitted!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Your complaint has been successfully submitted. We'll review it and
+            get back to you soon.
+          </p>
           <div className="space-y-3">
             <button
               onClick={() => setSuccess(false)}
@@ -106,7 +103,7 @@ export default function ComplaintForm() {
               Submit Another Complaint
             </button>
             <button
-              onClick={() => window.location.href = '/user/complaints'}
+              onClick={() => (window.location.href = "/user/complaints")}
               className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
             >
               View My Complaints
@@ -131,15 +128,24 @@ export default function ComplaintForm() {
               Back
             </button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Submit a Complaint</h1>
-          <p className="mt-2 text-gray-600">Help us improve our city by reporting issues you encounter</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Submit a Complaint
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Help us improve our city by reporting issues you encounter
+          </p>
         </div>
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Complaint Details</h2>
-            <p className="text-sm text-gray-600 mt-1">Please provide as much detail as possible to help us address your concern</p>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Complaint Details
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Please provide as much detail as possible to help us address your
+              concern
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -152,7 +158,7 @@ export default function ComplaintForm() {
                 type="text"
                 required
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 placeholder="Brief description of the issue"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -167,7 +173,9 @@ export default function ComplaintForm() {
                 required
                 rows={4}
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 placeholder="Please describe the issue in detail, including when you first noticed it and any relevant context..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -185,7 +193,9 @@ export default function ComplaintForm() {
                     type="text"
                     required
                     value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                     placeholder="Street address where the issue is located"
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -199,15 +209,15 @@ export default function ComplaintForm() {
                   type="text"
                   required
                   value={formData.pincode}
-                  onChange={(e) => handleInputChange('pincode', e.target.value)}
+                  onChange={(e) => handleInputChange("pincode", e.target.value)}
                   placeholder="6-digit pincode"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
 
-            {/* Category and Priority */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Category */}
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category *
@@ -215,34 +225,18 @@ export default function ComplaintForm() {
                 <select
                   required
                   value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("category", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select a category</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority Level
-                </label>
-                <div className="space-y-2">
-                  {priorities.map(priority => (
-                    <label key={priority.value} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="priority"
-                        value={priority.value}
-                        checked={formData.priority === priority.value}
-                        onChange={(e) => handleInputChange('priority', e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className={priority.color}>{priority.label}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
             </div>
 
@@ -255,7 +249,9 @@ export default function ComplaintForm() {
                 <input
                   type="tel"
                   value={formData.contactNumber}
-                  onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("contactNumber", e.target.value)
+                  }
                   placeholder="Your phone number"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -267,7 +263,7 @@ export default function ComplaintForm() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   placeholder="Your email address"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -281,8 +277,12 @@ export default function ComplaintForm() {
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
                 <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-                <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                <p className="text-sm text-gray-600">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  PNG, JPG, GIF up to 10MB
+                </p>
               </div>
             </div>
 
@@ -314,9 +314,13 @@ export default function ComplaintForm() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
-              <h3 className="text-sm font-medium text-blue-900">Important Information</h3>
+              <h3 className="text-sm font-medium text-blue-900">
+                Important Information
+              </h3>
               <p className="text-sm text-blue-700 mt-1">
-                Your complaint will be reviewed by our team within 24-48 hours. We'll keep you updated on the progress through email or SMS notifications.
+                Your complaint will be reviewed by our team within 24-48 hours.
+                We'll keep you updated on the progress through email or SMS
+                notifications.
               </p>
             </div>
           </div>
