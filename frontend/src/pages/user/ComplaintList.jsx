@@ -21,7 +21,7 @@ export default function ComplaintList() {
         return;
       }
 
-      const response = await fetch('/api/complaints/user-complaints', {
+      const response = await fetch('http://localhost:5000/api/complaints/user-complaints', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -4,7 +4,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import staffRoutes from "./routes/staffRoutes.js";
-import complaintRoutes from "./routes/complaintRoutes.js"; // ✅ Added complaint routes
+import complaintRoutes from "./routes/complaintRoutes.js";
+import escalationScheduler from "./services/schedulerService.js";
 
 dotenv.config();
 const app = express();
@@ -19,7 +20,7 @@ connectDB();
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/staff", staffRoutes);
-app.use("/api/complaints", complaintRoutes); // ✅ Mounted complaint routes
+app.use("/api/complaints", complaintRoutes);
 
 // Health Check Route
 app.get("/", (req, res) => {
@@ -28,6 +29,27 @@ app.get("/", (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  
+  try {
+    // Wait a bit for MongoDB connection to be fully established
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Import Complaint model after server starts
+    const { default: Complaint } = await import('./models/Complaint.js');
+    
+    // Start escalation scheduler with Complaint model
+    escalationScheduler.start(60); // Check every 60 minutes
+    
+    // Run initial escalation check
+    console.log('🚀 Running initial escalation check...');
+    const { checkAndEscalateOverdueComplaints } = await import('./services/escalationService.js');
+    await checkAndEscalateOverdueComplaints(Complaint);
+    
+    console.log('✅ Escalation system initialized successfully');
+    
+  } catch (error) {
+    console.error('❌ Error starting escalation scheduler:', error);
+  }
 });

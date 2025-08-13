@@ -27,7 +27,7 @@ export default function UserDashboard() {
           return;
         }
 
-        const response = await fetch("/api/complaints/user-stats", {
+        const response = await fetch("http://localhost:5000/api/complaints/user-stats", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

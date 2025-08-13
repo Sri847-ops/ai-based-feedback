@@ -75,7 +75,15 @@ function AppContent() {
             }
           />
           <Route
-            path="/staff/complaint-view"
+            path="/staff/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["staff"]}>
+                <StaffDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/complaint-view/:id"
             element={
               <ProtectedRoute allowedRoles={["staff"]}>
                 <ComplaintView />

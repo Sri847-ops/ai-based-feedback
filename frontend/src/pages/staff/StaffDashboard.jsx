@@ -1,5 +1,6 @@
 // pages/StaffDashboard.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Users, 
   Clock, 
@@ -12,71 +13,140 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Mail,
+  Send
 } from 'lucide-react';
+import { formatDate } from '../../utils/dateFormatter.js';
 
 export default function StaffDashboard() {
-  const [complaints, setComplaints] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [complaints, setComplaints] = useState({ high: [], medium: [], low: [] });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+    highPriority: 0
+  });
+  const [escalationStats, setEscalationStats] = useState({
+    total: 0,
+    escalated: 0,
+    resolved: 0,
+    pending: 0,
+    byPriority: {
+      high: 0,
+      medium: 0,
+      low: 0
+    },
+    escalationLimits: {
+      high: 3,
+      medium: 7,
+      low: 15
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
 
   useEffect(() => {
-    // Simulate fetching complaints
-    setTimeout(() => {
-      setComplaints([
-        {
-          id: '1',
-          title: 'Broken Street Light',
-          description: 'Street light on Main Street is not working for the past 3 days',
-          status: 'pending',
-          priority: 'medium',
-          address: '123 Main Street',
-          submittedDate: '2024-01-15',
-          category: 'Infrastructure',
-          assignedTo: 'John Smith',
-          citizenName: 'Alice Johnson',
-          citizenPhone: '+91 98765 43210'
-        },
-        {
-          id: '2',
-          title: 'Garbage Collection Issue',
-          description: 'Garbage not being collected regularly in our neighborhood',
-          status: 'in-progress',
-          priority: 'high',
-          address: '456 Oak Avenue',
-          submittedDate: '2024-01-10',
-          category: 'Sanitation',
-          assignedTo: 'Sarah Wilson',
-          citizenName: 'Bob Brown',
-          citizenPhone: '+91 98765 43211'
-        },
-        {
-          id: '3',
-          title: 'Water Pipeline Leak',
-          description: 'Major water leak from underground pipeline causing road damage',
-          status: 'resolved',
-          priority: 'high',
-          address: '789 Pine Road',
-          submittedDate: '2024-01-05',
-          category: 'Water Supply',
-          assignedTo: 'Mike Davis',
-          citizenName: 'Carol White',
-          citizenPhone: '+91 98765 43212'
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
+    fetchComplaints();
+    fetchStats();
+    fetchEscalationStats();
   }, []);
 
-  const stats = {
-    total: complaints.length,
-    pending: complaints.filter(c => c.status === 'pending').length,
-    inProgress: complaints.filter(c => c.status === 'in-progress').length,
-    resolved: complaints.filter(c => c.status === 'resolved').length,
-    highPriority: complaints.filter(c => c.priority === 'high').length
+  // Refresh data when returning to dashboard
+  useEffect(() => {
+    if (location.pathname === '/staff/dashboard') {
+      fetchComplaints();
+      fetchStats();
+      fetchEscalationStats();
+    }
+  }, [location.pathname]);
+
+  const fetchComplaints = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/api/complaints/grouped-by-priority');
+      if (response.ok) {
+        const data = await response.json();
+        setComplaints(data);
+      } else {
+        console.error('Failed to fetch complaints');
+      }
+    } catch (error) {
+      console.error('Error fetching complaints:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/complaints/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      } else {
+        console.error('Failed to fetch statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    }
+  };
+
+  const fetchEscalationStats = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/complaints/escalation/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setEscalationStats(data);
+      } else {
+        console.error('Failed to fetch escalation statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching escalation statistics:', error);
+    }
+  };
+
+  const handleComplaintClick = (complaintId) => {
+    navigate(`/staff/complaint-view/${complaintId}`);
+  };
+
+  const handleTestEmail = async () => {
+    const email = document.getElementById('testEmailInput').value;
+    if (!email) {
+      alert('Please enter an email address to test.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/complaints/test-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ testEmail: email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Email test successful! Message ID: ${data.result.messageId}`);
+        document.getElementById('testEmailInput').value = '';
+      } else {
+        const errorData = await response.json();
+        alert(`Email test failed: ${errorData.error || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      alert('Failed to send test email. Please check server logs.');
+    }
+  };
+
+  // Flatten all complaints for stats and filtering
+  const allComplaints = [...complaints.high, ...complaints.medium, ...complaints.low];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -96,14 +166,151 @@ export default function StaffDashboard() {
     }
   };
 
-  const filteredComplaints = complaints.filter(complaint => {
+  const filteredComplaints = allComplaints.filter(complaint => {
     const matchesSearch = complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         complaint.citizenName.toLowerCase().includes(searchTerm.toLowerCase());
+                         (complaint.createdBy?.name && complaint.createdBy.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || complaint.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || complaint.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const renderComplaintCard = (complaint) => {
+    const daysSinceCreation = Math.floor((Date.now() - new Date(complaint.createdAt)) / (1000 * 60 * 60 * 24));
+    const escalationLimit = { high: 3, medium: 7, low: 15 }[complaint.priority];
+    const daysUntilEscalation = Math.max(0, escalationLimit - daysSinceCreation);
+    const isOverdue = daysUntilEscalation <= 0;
+    const isEscalated = complaint.status === 'escalated';
+
+    return (
+      <div 
+        key={complaint._id} 
+        className={`bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow cursor-pointer ${
+          isOverdue ? 'border-red-300 bg-red-50' : 
+          daysUntilEscalation <= 1 ? 'border-orange-300 bg-orange-50' : 
+          'border-gray-200'
+        }`}
+        onClick={() => handleComplaintClick(complaint._id)}
+      >
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">{complaint.title}</h3>
+          <div className="flex flex-col items-end gap-2">
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(complaint.priority)}`}>
+              {complaint.priority}
+            </span>
+            {isEscalated && (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                Escalated
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{complaint.description}</p>
+        
+        {/* Escalation Warning */}
+        {isOverdue && !isEscalated && (
+          <div className="mb-3 p-2 bg-red-100 border border-red-200 rounded-md">
+            <p className="text-xs text-red-800 font-medium">
+              ⚠️ OVERDUE: Should be escalated to higher officials
+            </p>
+          </div>
+        )}
+        
+        {daysUntilEscalation <= 1 && daysUntilEscalation > 0 && !isEscalated && (
+          <div className="mb-3 p-2 bg-orange-100 border border-orange-200 rounded-md">
+            <p className="text-xs text-orange-800 font-medium">
+              ⚠️ URGENT: {daysUntilEscalation} day(s) until escalation
+            </p>
+          </div>
+        )}
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center text-sm text-gray-500">
+            <MapPin className="h-4 w-4 mr-2" />
+            <span>{complaint.address}</span>
+          </div>
+          
+          <div className="flex items-center text-sm text-gray-500">
+            <Users className="h-4 w-4 mr-2" />
+            <span>{complaint.createdBy?.name || 'Anonymous'}</span>
+          </div>
+          
+          {complaint.category && (
+            <div className="flex items-center text-sm text-gray-500">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              <span>{complaint.category}</span>
+            </div>
+          )}
+          
+          <div className="flex items-center text-sm text-gray-500">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>{formatDate(complaint.createdAt)}</span>
+          </div>
+          
+          {/* Escalation Timing */}
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="h-4 w-4 mr-2" />
+            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
+              {isOverdue 
+                ? `${daysSinceCreation} days old (${daysSinceCreation - escalationLimit} days overdue)`
+                : `${daysSinceCreation} days old (${daysUntilEscalation} days until escalation)`
+              }
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(complaint.status)}`}>
+            {complaint.status.replace('-', ' ')}
+          </span>
+          
+          <div className="flex space-x-2">
+            <button 
+              className="text-blue-600 hover:text-blue-900 p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComplaintClick(complaint._id);
+              }}
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+            <button 
+              className="text-green-600 hover:text-green-900 p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleComplaintClick(complaint._id);
+              }}
+            >
+              <Edit className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPrioritySection = (priority, complaints, color) => (
+    <div className="mb-8">
+      <div className="flex items-center mb-4">
+        <div className={`w-4 h-4 rounded-full ${color} mr-3`}></div>
+        <h2 className="text-xl font-semibold text-gray-900 capitalize">{priority} Priority</h2>
+        <span className="ml-3 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+          {complaints.length} complaints
+        </span>
+      </div>
+      
+      {complaints.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No {priority} priority complaints
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {complaints.map(renderComplaintCard)}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,7 +318,7 @@ export default function StaffDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Staff Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage and track citizen complaints</p>
+          <p className="mt-2 text-gray-600">Manage and track citizen complaints by priority</p>
         </div>
 
         {/* Stats Cards */}
@@ -145,13 +352,14 @@ export default function StaffDashboard() {
             change="+8"
           />
           <StatCard 
-            title="High Priority" 
-            value={stats.highPriority} 
+            title="Escalated Complaints" 
+            value={escalationStats.escalated} 
             icon={AlertTriangle} 
             color="red" 
             change="+2"
           />
         </div>
+
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -197,107 +405,24 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        {/* Complaints Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">All Complaints</h2>
-            <p className="text-sm text-gray-600 mt-1">Manage and update complaint status</p>
+        {/* Complaints by Priority */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading complaints...</p>
           </div>
-
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading complaints...</p>
-            </div>
-          ) : filteredComplaints.length === 0 ? (
-            <div className="p-8 text-center">
-              <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No complaints found</h3>
-              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Complaint
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Citizen
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Priority
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Assigned To
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredComplaints.map((complaint) => (
-                    <tr key={complaint.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{complaint.title}</div>
-                          <div className="text-sm text-gray-500">{complaint.description.substring(0, 50)}...</div>
-                          <div className="flex items-center text-xs text-gray-400 mt-1">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {complaint.address}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{complaint.citizenName}</div>
-                          <div className="text-sm text-gray-500">{complaint.citizenPhone}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(complaint.status)}`}>
-                          {complaint.status.replace('-', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(complaint.priority)}`}>
-                          {complaint.priority}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {complaint.assignedTo}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {complaint.submittedDate}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button className="text-green-600 hover:text-green-900">
-                            <Edit className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div>
+            {/* High Priority Complaints */}
+            {renderPrioritySection('high', complaints.high, 'bg-red-500')}
+            
+            {/* Medium Priority Complaints */}
+            {renderPrioritySection('medium', complaints.medium, 'bg-yellow-500')}
+            
+            {/* Low Priority Complaints */}
+            {renderPrioritySection('low', complaints.low, 'bg-green-500')}
+          </div>
+        )}
       </div>
     </div>
   );

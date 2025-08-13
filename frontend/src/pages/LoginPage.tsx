@@ -40,9 +40,9 @@ export default function LoginPage() {
       const endpoint =
         authMode === "login"
           ? activeTab === "citizen"
-            ? "/api/users/login"
-            : "/api/staff/login"
-          : "/api/users/signup"
+            ? "http://localhost:5000/api/users/login"
+            : "http://localhost:5000/api/staff/login"
+          : "http://localhost:5000/api/users/signup"
 
       const payload =
         authMode === "login"
