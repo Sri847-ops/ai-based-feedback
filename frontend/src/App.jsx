@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import ComplaintList from "./pages/user/ComplaintList";
 import ComplaintForm from "./pages/user/ComplaintForm";
 import ComplaintView from "./pages/staff/ComplaintView";
+import HelpFaq from "./pages/user/Help&Faq";
 import "./index.css";
 
 // Simple auth utility
@@ -66,6 +67,7 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route path="/help" element={<HelpFaq></HelpFaq>}></Route>
           <Route
             path="/staff"
             element={

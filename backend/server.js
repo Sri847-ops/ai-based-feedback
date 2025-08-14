@@ -28,28 +28,29 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  
+
   try {
     // Wait a bit for MongoDB connection to be fully established
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Import Complaint model after server starts
-    const { default: Complaint } = await import('./models/Complaint.js');
-    
+    const { default: Complaint } = await import("./models/Complaint.js");
+
     // Start escalation scheduler with Complaint model
     escalationScheduler.start(60); // Check every 60 minutes
-    
+
     // Run initial escalation check
-    console.log('🚀 Running initial escalation check...');
-    const { checkAndEscalateOverdueComplaints } = await import('./services/escalationService.js');
+    console.log("🚀 Running initial escalation check...");
+    const { checkAndEscalateOverdueComplaints } = await import(
+      "./services/escalationService.js"
+    );
     await checkAndEscalateOverdueComplaints(Complaint);
-    
-    console.log('✅ Escalation system initialized successfully');
-    
+
+    console.log("✅ Escalation system initialized successfully");
   } catch (error) {
-    console.error('❌ Error starting escalation scheduler:', error);
+    console.error("❌ Error starting escalation scheduler:", error);
   }
 });

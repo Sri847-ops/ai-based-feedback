@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   UserCircle,
+  ChevronDown,
+  Edit,
 } from "lucide-react";
 
 export default function Header() {
@@ -23,11 +25,24 @@ export default function Header() {
   const [userName] = useState("John Doe");
   const [pendingComplaints] = useState(12);
   const [currentPath, setCurrentPath] = useState("");
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const storedUserType = localStorage.getItem("userType");
     if (storedUserType) setUserType(storedUserType);
     setCurrentPath(window.location.pathname);
+  }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const citizenNavItems = [
@@ -112,47 +127,134 @@ export default function Header() {
               </button>
             )}
 
-            {/* User Menu */}
-            <div className="relative">
+            {/* Enhanced User Menu */}
+            <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 p-2 cursor-pointer text-slate-700 hover:bg-slate-100 rounded-md transition"
+                className="flex items-center space-x-2 px-3 py-2 cursor-pointer text-slate-700 hover:bg-white/50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="true"
+                aria-label="User menu"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-200/40 text-blue-800">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-sm ring-2 ring-white/20">
                   <User size={18} />
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium">{userName}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {userName}
+                  </p>
                   <p className="text-xs text-slate-500 capitalize">
                     {userType}
                   </p>
                 </div>
+                <ChevronDown
+                  size={16}
+                  className={`hidden md:block text-slate-500 transition-transform duration-200 ${
+                    isUserMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 backdrop-blur-lg bg-white/90 border border-white/20 rounded-md shadow-lg z-50">
-                  <div className="py-1">
+                <div className="absolute right-0 mt-3 w-72 backdrop-blur-xl bg-white/95 border border-white/40 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  {/* User Info Header */}
+                  <div className="px-4 py-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border-b border-white/30">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg ring-2 ring-blue-200">
+                        <User size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold text-slate-900 truncate">
+                          {userName}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <div
+                            className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
+                              userType === "staff"
+                                ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200"
+                                : "bg-blue-100 text-blue-700 ring-1 ring-blue-200"
+                            }`}
+                          >
+                            {userType === "staff" ? (
+                              <>Staff Member</>
+                            ) : (
+                              "Citizen"
+                            )}
+                          </div>
+                          {userType === "staff" && pendingComplaints > 0 && (
+                            <div className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full ring-1 ring-red-200">
+                              {pendingComplaints} pending
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-2">
                     <a
                       href="/profile"
-                      className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-slate-100"
+                      className="group flex items-center space-x-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50/60 hover:text-blue-700 transition-all duration-150"
                     >
-                      <UserCircle size={16} />
-                      <span>Profile</span>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100/60 text-blue-600 group-hover:bg-blue-200/80 transition-colors">
+                        <UserCircle size={16} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">View Profile</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Manage your personal information
+                        </p>
+                      </div>
                     </a>
+
+                    <a
+                      href="/profile/edit"
+                      className="group flex items-center space-x-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50/60 hover:text-blue-700 transition-all duration-150"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100/60 text-green-600 group-hover:bg-green-200/80 transition-colors">
+                        <Edit size={16} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Edit Profile</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Update your details and preferences
+                        </p>
+                      </div>
+                    </a>
+
                     <a
                       href="/settings"
-                      className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-slate-100"
+                      className="group flex items-center space-x-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50/60 hover:text-blue-700 transition-all duration-150"
                     >
-                      <Settings size={16} />
-                      <span>Settings</span>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100/60 text-purple-600 group-hover:bg-purple-200/80 transition-colors">
+                        <Settings size={16} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Account Settings</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Privacy, security & preferences
+                        </p>
+                      </div>
                     </a>
-                    <hr className="my-1 border-white/20" />
+
+                    {/* Divider */}
+                    <hr className="my-2 border-slate-200/60" />
+
+                    {/* Sign Out */}
                     <button
                       onClick={handleSignOut}
-                      className="flex items-center space-x-2 w-full  cursor-pointer px-4 py-2 text-sm text-red-600 hover:bg-red-200/40"
+                      className="group flex cursor-pointer items-center space-x-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50/60 hover:text-red-700 transition-all duration-150 focus:outline-none focus:bg-red-50/60"
                     >
-                      <LogOut size={16} />
-                      <span>Sign Out</span>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100/60 text-red-600 group-hover:bg-red-200/80 transition-colors">
+                        <LogOut size={16} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-medium">Sign Out</p>
+                        <p className="text-xs text-red-500/80 mt-0.5">
+                          End your current session
+                        </p>
+                      </div>
                     </button>
                   </div>
                 </div>
