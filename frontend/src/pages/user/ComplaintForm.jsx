@@ -45,7 +45,7 @@ export default function ComplaintForm() {
       const payload = JSON.parse(atob(token.split(".")[1]));
       const userId = payload.userId;
 
-      const response = await fetch("http://localhost:5000/api/complaints/submit", {
+      const response = await fetch("/api/complaints/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

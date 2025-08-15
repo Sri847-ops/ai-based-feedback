@@ -1,38 +1,46 @@
-import React, { useState } from "react"
-import { User, Shield, Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react"
+import React, { useState } from "react";
+import {
+  User,
+  Shield,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  AlertCircle,
+} from "lucide-react";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [activeTab, setActiveTab] = useState("citizen")
-  const [authMode, setAuthMode] = useState("login") // login | signup
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("citizen");
+  const [authMode, setAuthMode] = useState("login"); // login | signup
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     if (authMode === "signup") {
       if (!formData.name.trim()) {
-        setError("Name is required.")
-        setLoading(false)
-        return
+        setError("Name is required.");
+        setLoading(false);
+        return;
       }
       if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match.")
-        setLoading(false)
-        return
+        setError("Passwords do not match.");
+        setLoading(false);
+        return;
       }
     }
 
@@ -40,9 +48,9 @@ export default function LoginPage() {
       const endpoint =
         authMode === "login"
           ? activeTab === "citizen"
-            ? "http://localhost:5000/api/users/login"
-            : "http://localhost:5000/api/staff/login"
-          : "http://localhost:5000/api/users/signup"
+            ? "/api/users/login"
+            : "/api/staff/login"
+          : "/api/users/signup";
 
       const payload =
         authMode === "login"
@@ -54,38 +62,41 @@ export default function LoginPage() {
               name: formData.name,
               email: formData.email,
               password: formData.password,
-            }
+            };
 
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
+      });
 
-      let data
+      let data;
       try {
-        data = await response.json()
+        data = await response.json();
       } catch {
-        throw new Error("Invalid server response")
+        throw new Error("Invalid server response");
       }
 
       if (!response.ok) {
-        throw new Error(data?.message || "Request failed")
+        throw new Error(data?.message || "Request failed");
       }
 
       if (!data.token) {
-        throw new Error("No authentication token received from server.")
+        throw new Error("No authentication token received from server.");
       }
 
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("userType", activeTab === "citizen" ? "user" : "staff")
-      window.location.href = activeTab === "citizen" ? "/" : "/staff"
+      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "userType",
+        activeTab === "citizen" ? "user" : "staff"
+      );
+      window.location.href = activeTab === "citizen" ? "/" : "/staff";
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -94,14 +105,17 @@ export default function LoginPage() {
           <div className="flex items-start bg-blue-50 border border-blue-200 p-4 mb-6 rounded-md space-x-3">
             <AlertCircle className="h-5 w-5 text-blue-600 mt-1" />
             <p className="text-sm text-blue-800">
-              This is an official government portal. Please ensure you are authorized to access this system.
+              This is an official government portal. Please ensure you are
+              authorized to access this system.
             </p>
           </div>
 
           <div className="bg-white shadow-xl rounded-lg p-6">
             <div className="text-center pb-4">
               <h2 className="text-2xl font-bold text-slate-800">
-                {authMode === "login" ? "Secure Access Portal" : "Create an Account"}
+                {authMode === "login"
+                  ? "Secure Access Portal"
+                  : "Create an Account"}
               </h2>
               <p className="text-slate-600">
                 {authMode === "login"
@@ -128,7 +142,9 @@ export default function LoginPage() {
                   activeTab === "staff"
                     ? "bg-slate-700 text-white"
                     : "bg-slate-100 text-slate-700"
-                } ${authMode === "signup" ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${
+                  authMode === "signup" ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={() => authMode === "login" && setActiveTab("staff")}
                 disabled={authMode === "signup"}
               >
@@ -150,7 +166,9 @@ export default function LoginPage() {
                 ) : (
                   <Shield className="h-3 w-3 mr-1" />
                 )}
-                {activeTab === "citizen" ? "Citizen Portal Access" : "Government Staff Access"}
+                {activeTab === "citizen"
+                  ? "Citizen Portal Access"
+                  : "Government Staff Access"}
               </span>
             </div>
 
@@ -158,7 +176,9 @@ export default function LoginPage() {
               {/* Name (only in signup) */}
               {authMode === "signup" && (
                 <div>
-                  <label className="block text-slate-700 font-medium mb-1">Full Name</label>
+                  <label className="block text-slate-700 font-medium mb-1">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     className="w-full h-12 px-4 border border-slate-300 rounded focus:outline-none focus:border-blue-500"
@@ -172,7 +192,9 @@ export default function LoginPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Email Address</label>
+                <label className="block text-slate-700 font-medium mb-1">
+                  Email Address
+                </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
@@ -188,7 +210,9 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <label className="block text-slate-700 font-medium mb-1">Password</label>
+                <label className="block text-slate-700 font-medium mb-1">
+                  Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <input
@@ -196,7 +220,9 @@ export default function LoginPage() {
                     className="w-full h-12 pl-10 pr-10 border border-slate-300 rounded focus:outline-none focus:border-blue-500"
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     required
                   />
                   <button
@@ -204,7 +230,11 @@ export default function LoginPage() {
                     className="absolute right-2 top-2 h-8 w-8 text-slate-500"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -212,7 +242,9 @@ export default function LoginPage() {
               {/* Confirm Password (only in signup) */}
               {authMode === "signup" && (
                 <div>
-                  <label className="block text-slate-700 font-medium mb-1">Confirm Password</label>
+                  <label className="block text-slate-700 font-medium mb-1">
+                    Confirm Password
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     <input
@@ -220,19 +252,25 @@ export default function LoginPage() {
                       className="w-full h-12 pl-10 pr-4 border border-slate-300 rounded focus:outline-none focus:border-blue-500"
                       placeholder="Confirm your password"
                       value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("confirmPassword", e.target.value)
+                      }
                       required
                     />
                   </div>
                 </div>
               )}
 
-              {error && <div className="text-red-600 text-sm text-center">{error}</div>}
+              {error && (
+                <div className="text-red-600 text-sm text-center">{error}</div>
+              )}
 
               <button
                 type="submit"
                 className={`w-full h-12 ${
-                  activeTab === "citizen" ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-700 hover:bg-slate-800"
+                  activeTab === "citizen"
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "bg-slate-700 hover:bg-slate-800"
                 } text-white font-medium rounded flex items-center justify-center`}
                 disabled={loading}
               >
@@ -241,7 +279,9 @@ export default function LoginPage() {
                     ? "Signing In..."
                     : "Creating Account..."
                   : authMode === "login"
-                  ? `Sign In as ${activeTab === "citizen" ? "Citizen" : "Staff"}`
+                  ? `Sign In as ${
+                      activeTab === "citizen" ? "Citizen" : "Staff"
+                    }`
                   : "Sign Up as Citizen"}
               </button>
             </form>
@@ -253,8 +293,8 @@ export default function LoginPage() {
                   Don't have an account?{" "}
                   <button
                     onClick={() => {
-                      setAuthMode("signup")
-                      setActiveTab("citizen")
+                      setAuthMode("signup");
+                      setActiveTab("citizen");
                     }}
                     className="text-blue-600 hover:underline"
                   >
@@ -264,7 +304,10 @@ export default function LoginPage() {
               ) : (
                 <>
                   Already have an account?{" "}
-                  <button onClick={() => setAuthMode("login")} className="text-blue-600 hover:underline">
+                  <button
+                    onClick={() => setAuthMode("login")}
+                    className="text-blue-600 hover:underline"
+                  >
                     Sign in here
                   </button>
                 </>
@@ -276,15 +319,21 @@ export default function LoginPage() {
           <div className="text-center mt-8 text-sm text-slate-600">
             <p>© 2024 Municipal Government. All rights reserved.</p>
             <div className="flex justify-center space-x-4 mt-2">
-              <button className="text-xs text-slate-500 hover:underline">Privacy Policy</button>
+              <button className="text-xs text-slate-500 hover:underline">
+                Privacy Policy
+              </button>
               <span className="text-slate-400">|</span>
-              <button className="text-xs text-slate-500 hover:underline">Terms of Service</button>
+              <button className="text-xs text-slate-500 hover:underline">
+                Terms of Service
+              </button>
               <span className="text-slate-400">|</span>
-              <button className="text-xs text-slate-500 hover:underline">Accessibility</button>
+              <button className="text-xs text-slate-500 hover:underline">
+                Accessibility
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,34 +1,38 @@
 // pages/StaffDashboard.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Users,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Search,
+  Filter,
+  Eye,
+  Edit,
   Calendar,
   MapPin,
   TrendingUp,
   BarChart3,
   Mail,
-  Send
-} from 'lucide-react';
-import { formatDate } from '../../utils/dateFormatter.js';
+  Send,
+} from "lucide-react";
+import { formatDate } from "../../utils/dateFormatter.js";
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [complaints, setComplaints] = useState({ high: [], medium: [], low: [] });
+  const [complaints, setComplaints] = useState({
+    high: [],
+    medium: [],
+    low: [],
+  });
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
     inProgress: 0,
     resolved: 0,
-    highPriority: 0
+    highPriority: 0,
   });
   const [escalationStats, setEscalationStats] = useState({
     total: 0,
@@ -38,18 +42,18 @@ export default function StaffDashboard() {
     byPriority: {
       high: 0,
       medium: 0,
-      low: 0
+      low: 0,
     },
     escalationLimits: {
       high: 3,
       medium: 7,
-      low: 15
-    }
+      low: 15,
+    },
   });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   useEffect(() => {
     fetchComplaints();
@@ -59,7 +63,7 @@ export default function StaffDashboard() {
 
   // Refresh data when returning to dashboard
   useEffect(() => {
-    if (location.pathname === '/staff/dashboard') {
+    if (location.pathname === "/staff/dashboard") {
       fetchComplaints();
       fetchStats();
       fetchEscalationStats();
@@ -69,15 +73,15 @@ export default function StaffDashboard() {
   const fetchComplaints = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/complaints/grouped-by-priority');
+      const response = await fetch("/api/complaints/grouped-by-priority");
       if (response.ok) {
         const data = await response.json();
         setComplaints(data);
       } else {
-        console.error('Failed to fetch complaints');
+        console.error("Failed to fetch complaints");
       }
     } catch (error) {
-      console.error('Error fetching complaints:', error);
+      console.error("Error fetching complaints:", error);
     } finally {
       setLoading(false);
     }
@@ -85,29 +89,29 @@ export default function StaffDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/complaints/stats');
+      const response = await fetch("/api/complaints/stats");
       if (response.ok) {
         const data = await response.json();
         setStats(data);
       } else {
-        console.error('Failed to fetch statistics');
+        console.error("Failed to fetch statistics");
       }
     } catch (error) {
-      console.error('Error fetching statistics:', error);
+      console.error("Error fetching statistics:", error);
     }
   };
 
   const fetchEscalationStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/complaints/escalation/stats');
+      const response = await fetch("/api/complaints/escalation/stats");
       if (response.ok) {
         const data = await response.json();
         setEscalationStats(data);
       } else {
-        console.error('Failed to fetch escalation statistics');
+        console.error("Failed to fetch escalation statistics");
       }
     } catch (error) {
-      console.error('Error fetching escalation statistics:', error);
+      console.error("Error fetching escalation statistics:", error);
     }
   };
 
@@ -116,17 +120,17 @@ export default function StaffDashboard() {
   };
 
   const handleTestEmail = async () => {
-    const email = document.getElementById('testEmailInput').value;
+    const email = document.getElementById("testEmailInput").value;
     if (!email) {
-      alert('Please enter an email address to test.');
+      alert("Please enter an email address to test.");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/complaints/test-email', {
-        method: 'POST',
+      const response = await fetch("/api/complaints/test-email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ testEmail: email }),
       });
@@ -134,68 +138,99 @@ export default function StaffDashboard() {
       if (response.ok) {
         const data = await response.json();
         alert(`Email test successful! Message ID: ${data.result.messageId}`);
-        document.getElementById('testEmailInput').value = '';
+        document.getElementById("testEmailInput").value = "";
       } else {
         const errorData = await response.json();
         alert(`Email test failed: ${errorData.error || response.statusText}`);
       }
     } catch (error) {
-      console.error('Error sending test email:', error);
-      alert('Failed to send test email. Please check server logs.');
+      console.error("Error sending test email:", error);
+      alert("Failed to send test email. Please check server logs.");
     }
   };
 
   // Flatten all complaints for stats and filtering
-  const allComplaints = [...complaints.high, ...complaints.medium, ...complaints.low];
+  const allComplaints = [
+    ...complaints.high,
+    ...complaints.medium,
+    ...complaints.low,
+  ];
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800";
+      case "resolved":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "high":
+        return "bg-red-100 text-red-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const filteredComplaints = allComplaints.filter(complaint => {
-    const matchesSearch = complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (complaint.createdBy?.name && complaint.createdBy.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || complaint.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || complaint.priority === priorityFilter;
+  const filteredComplaints = allComplaints.filter((complaint) => {
+    const matchesSearch =
+      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (complaint.createdBy?.name &&
+        complaint.createdBy.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
+    const matchesStatus =
+      statusFilter === "all" || complaint.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || complaint.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const renderComplaintCard = (complaint) => {
-    const daysSinceCreation = Math.floor((Date.now() - new Date(complaint.createdAt)) / (1000 * 60 * 60 * 24));
+    const daysSinceCreation = Math.floor(
+      (Date.now() - new Date(complaint.createdAt)) / (1000 * 60 * 60 * 24)
+    );
     const escalationLimit = { high: 3, medium: 7, low: 15 }[complaint.priority];
-    const daysUntilEscalation = Math.max(0, escalationLimit - daysSinceCreation);
+    const daysUntilEscalation = Math.max(
+      0,
+      escalationLimit - daysSinceCreation
+    );
     const isOverdue = daysUntilEscalation <= 0;
-    const isEscalated = complaint.status === 'escalated';
+    const isEscalated = complaint.status === "escalated";
 
     return (
-      <div 
-        key={complaint._id} 
+      <div
+        key={complaint._id}
         className={`bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-shadow cursor-pointer ${
-          isOverdue ? 'border-red-300 bg-red-50' : 
-          daysUntilEscalation <= 1 ? 'border-orange-300 bg-orange-50' : 
-          'border-gray-200'
+          isOverdue
+            ? "border-red-300 bg-red-50"
+            : daysUntilEscalation <= 1
+            ? "border-orange-300 bg-orange-50"
+            : "border-gray-200"
         }`}
         onClick={() => handleComplaintClick(complaint._id)}
       >
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">{complaint.title}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {complaint.title}
+          </h3>
           <div className="flex flex-col items-end gap-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(complaint.priority)}`}>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(
+                complaint.priority
+              )}`}
+            >
               {complaint.priority}
             </span>
             {isEscalated && (
@@ -205,9 +240,11 @@ export default function StaffDashboard() {
             )}
           </div>
         </div>
-        
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{complaint.description}</p>
-        
+
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+          {complaint.description}
+        </p>
+
         {/* Escalation Warning */}
         {isOverdue && !isEscalated && (
           <div className="mb-3 p-2 bg-red-100 border border-red-200 rounded-md">
@@ -216,57 +253,64 @@ export default function StaffDashboard() {
             </p>
           </div>
         )}
-        
-        {daysUntilEscalation <= 1 && daysUntilEscalation > 0 && !isEscalated && (
-          <div className="mb-3 p-2 bg-orange-100 border border-orange-200 rounded-md">
-            <p className="text-xs text-orange-800 font-medium">
-              ⚠️ URGENT: {daysUntilEscalation} day(s) until escalation
-            </p>
-          </div>
-        )}
-        
+
+        {daysUntilEscalation <= 1 &&
+          daysUntilEscalation > 0 &&
+          !isEscalated && (
+            <div className="mb-3 p-2 bg-orange-100 border border-orange-200 rounded-md">
+              <p className="text-xs text-orange-800 font-medium">
+                ⚠️ URGENT: {daysUntilEscalation} day(s) until escalation
+              </p>
+            </div>
+          )}
+
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-gray-500">
             <MapPin className="h-4 w-4 mr-2" />
             <span>{complaint.address}</span>
           </div>
-          
+
           <div className="flex items-center text-sm text-gray-500">
             <Users className="h-4 w-4 mr-2" />
-            <span>{complaint.createdBy?.name || 'Anonymous'}</span>
+            <span>{complaint.createdBy?.name || "Anonymous"}</span>
           </div>
-          
+
           {complaint.category && (
             <div className="flex items-center text-sm text-gray-500">
               <BarChart3 className="h-4 w-4 mr-2" />
               <span>{complaint.category}</span>
             </div>
           )}
-          
+
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="h-4 w-4 mr-2" />
             <span>{formatDate(complaint.createdAt)}</span>
           </div>
-          
+
           {/* Escalation Timing */}
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="h-4 w-4 mr-2" />
-            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
-              {isOverdue 
-                ? `${daysSinceCreation} days old (${daysSinceCreation - escalationLimit} days overdue)`
-                : `${daysSinceCreation} days old (${daysUntilEscalation} days until escalation)`
-              }
+            <span className={isOverdue ? "text-red-600 font-medium" : ""}>
+              {isOverdue
+                ? `${daysSinceCreation} days old (${
+                    daysSinceCreation - escalationLimit
+                  } days overdue)`
+                : `${daysSinceCreation} days old (${daysUntilEscalation} days until escalation)`}
             </span>
           </div>
         </div>
-        
+
         <div className="flex justify-between items-center">
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(complaint.status)}`}>
-            {complaint.status.replace('-', ' ')}
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+              complaint.status
+            )}`}
+          >
+            {complaint.status.replace("-", " ")}
           </span>
-          
+
           <div className="flex space-x-2">
-            <button 
+            <button
               className="text-blue-600 hover:text-blue-900 p-1"
               onClick={(e) => {
                 e.stopPropagation();
@@ -275,7 +319,7 @@ export default function StaffDashboard() {
             >
               <Eye className="h-4 w-4" />
             </button>
-            <button 
+            <button
               className="text-green-600 hover:text-green-900 p-1"
               onClick={(e) => {
                 e.stopPropagation();
@@ -294,12 +338,14 @@ export default function StaffDashboard() {
     <div className="mb-8">
       <div className="flex items-center mb-4">
         <div className={`w-4 h-4 rounded-full ${color} mr-3`}></div>
-        <h2 className="text-xl font-semibold text-gray-900 capitalize">{priority} Priority</h2>
+        <h2 className="text-xl font-semibold text-gray-900 capitalize">
+          {priority} Priority
+        </h2>
         <span className="ml-3 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
           {complaints.length} complaints
         </span>
       </div>
-      
+
       {complaints.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           No {priority} priority complaints
@@ -318,48 +364,49 @@ export default function StaffDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Staff Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage and track citizen complaints by priority</p>
+          <p className="mt-2 text-gray-600">
+            Manage and track citizen complaints by priority
+          </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <StatCard 
-            title="Total Complaints" 
-            value={stats.total} 
-            icon={BarChart3} 
-            color="blue" 
+          <StatCard
+            title="Total Complaints"
+            value={stats.total}
+            icon={BarChart3}
+            color="blue"
             change="+12%"
           />
-          <StatCard 
-            title="Pending" 
-            value={stats.pending} 
-            icon={Clock} 
-            color="yellow" 
+          <StatCard
+            title="Pending"
+            value={stats.pending}
+            icon={Clock}
+            color="yellow"
             change="+5"
           />
-          <StatCard 
-            title="In Progress" 
-            value={stats.inProgress} 
-            icon={Edit} 
-            color="blue" 
+          <StatCard
+            title="In Progress"
+            value={stats.inProgress}
+            icon={Edit}
+            color="blue"
             change="+3"
           />
-          <StatCard 
-            title="Resolved" 
-            value={stats.resolved} 
-            icon={CheckCircle} 
-            color="green" 
+          <StatCard
+            title="Resolved"
+            value={stats.resolved}
+            icon={CheckCircle}
+            color="green"
             change="+8"
           />
-          <StatCard 
-            title="Escalated Complaints" 
-            value={escalationStats.escalated} 
-            icon={AlertTriangle} 
-            color="red" 
+          <StatCard
+            title="Escalated Complaints"
+            value={escalationStats.escalated}
+            icon={AlertTriangle}
+            color="red"
             change="+2"
           />
         </div>
-
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -414,13 +461,17 @@ export default function StaffDashboard() {
         ) : (
           <div>
             {/* High Priority Complaints */}
-            {renderPrioritySection('high', complaints.high, 'bg-red-500')}
-            
+            {renderPrioritySection("high", complaints.high, "bg-red-500")}
+
             {/* Medium Priority Complaints */}
-            {renderPrioritySection('medium', complaints.medium, 'bg-yellow-500')}
-            
+            {renderPrioritySection(
+              "medium",
+              complaints.medium,
+              "bg-yellow-500"
+            )}
+
             {/* Low Priority Complaints */}
-            {renderPrioritySection('low', complaints.low, 'bg-green-500')}
+            {renderPrioritySection("low", complaints.low, "bg-green-500")}
           </div>
         )}
       </div>
@@ -430,10 +481,10 @@ export default function StaffDashboard() {
 
 function StatCard({ title, value, icon: Icon, color, change }) {
   const colorClasses = {
-    blue: 'bg-blue-100 text-blue-600',
-    yellow: 'bg-yellow-100 text-yellow-600',
-    green: 'bg-green-100 text-green-600',
-    red: 'bg-red-100 text-red-600'
+    blue: "bg-blue-100 text-blue-600",
+    yellow: "bg-yellow-100 text-yellow-600",
+    green: "bg-green-100 text-green-600",
+    red: "bg-red-100 text-red-600",
   };
 
   return (

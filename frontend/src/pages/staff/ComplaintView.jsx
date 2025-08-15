@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Calendar, 
-  Phone, 
-  Mail, 
-  User, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  Phone,
+  Mail,
+  User,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
   Edit,
   MessageSquare,
   Camera,
   FileText,
-  Send
-} from 'lucide-react';
-import { formatDate } from '../../utils/dateFormatter.js';
+  Send,
+} from "lucide-react";
+import { formatDate } from "../../utils/dateFormatter.js";
 
 export default function ComplaintView() {
   const { id } = useParams();
@@ -24,10 +24,10 @@ export default function ComplaintView() {
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [newNote, setNewNote] = useState('');
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [newNote, setNewNote] = useState("");
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -38,18 +38,18 @@ export default function ComplaintView() {
   const fetchComplaint = async () => {
     try {
       setLoading(true);
-      setError('');
-      const response = await fetch(`http://localhost:5000/api/complaints/${id}`);
+      setError("");
+      const response = await fetch(`/api/complaints/${id}`);
       if (response.ok) {
         const data = await response.json();
         setComplaint(data);
         setStatus(data.status);
       } else {
-        setError('Failed to fetch complaint details');
+        setError("Failed to fetch complaint details");
       }
     } catch (error) {
-      console.error('Error fetching complaint:', error);
-      setError('Error fetching complaint details');
+      console.error("Error fetching complaint:", error);
+      setError("Error fetching complaint details");
     } finally {
       setLoading(false);
     }
@@ -57,16 +57,16 @@ export default function ComplaintView() {
 
   const handleStatusUpdate = async () => {
     if (!status || status === complaint.status) return;
-    
+
     try {
       setUpdating(true);
-      setError('');
-      setSuccessMessage('');
-      
-      const response = await fetch(`http://localhost:5000/api/complaints/${id}/status`, {
-        method: 'PUT',
+      setError("");
+      setSuccessMessage("");
+
+      const response = await fetch(`/api/complaints/${id}/status`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ status }),
       });
@@ -74,20 +74,20 @@ export default function ComplaintView() {
       if (response.ok) {
         const data = await response.json();
         setComplaint(data.complaint);
-        setSuccessMessage('Status updated successfully!');
-        
+        setSuccessMessage("Status updated successfully!");
+
         // If status is resolved, redirect to dashboard after a short delay
-        if (status === 'resolved') {
+        if (status === "resolved") {
           setTimeout(() => {
-            navigate('/staff/dashboard');
+            navigate("/staff/dashboard");
           }, 1500);
         }
       } else {
-        setError('Failed to update status');
+        setError("Failed to update status");
       }
     } catch (error) {
-      console.error('Error updating status:', error);
-      setError('Error updating status');
+      console.error("Error updating status:", error);
+      setError("Error updating status");
     } finally {
       setUpdating(false);
     }
@@ -95,56 +95,64 @@ export default function ComplaintView() {
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
-    
+
     const note = {
       text: newNote,
-      author: 'Staff Member', // This should come from auth context
+      author: "Staff Member", // This should come from auth context
       timestamp: new Date(),
-      type: 'internal'
+      type: "internal",
     };
 
     try {
-      setError('');
-      const response = await fetch(`http://localhost:5000/api/complaints/${id}/status`, {
-        method: 'PUT',
+      setError("");
+      const response = await fetch(`/api/complaints/${id}/status`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          notes: [...(complaint.notes || []), note] 
+        body: JSON.stringify({
+          notes: [...(complaint.notes || []), note],
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setComplaint(data.complaint);
-        setNewNote('');
-        setSuccessMessage('Note added successfully!');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        setNewNote("");
+        setSuccessMessage("Note added successfully!");
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setError('Failed to add note');
+        setError("Failed to add note");
       }
     } catch (error) {
-      console.error('Error adding note:', error);
-      setError('Error adding note');
+      console.error("Error adding note:", error);
+      setError("Error adding note");
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800";
+      case "resolved":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "high":
+        return "bg-red-100 text-red-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -165,13 +173,15 @@ export default function ComplaintView() {
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {error || 'Complaint not found'}
+            {error || "Complaint not found"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {error ? 'Please try again later' : 'The complaint you\'re looking for doesn\'t exist.'}
+            {error
+              ? "Please try again later"
+              : "The complaint you're looking for doesn't exist."}
           </p>
           <button
-            onClick={() => navigate('/staff/dashboard')}
+            onClick={() => navigate("/staff/dashboard")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Back to Dashboard
@@ -188,37 +198,49 @@ export default function ComplaintView() {
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             <button
-              onClick={() => navigate('/staff/dashboard')}
+              onClick={() => navigate("/staff/dashboard")}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </button>
           </div>
-          
+
           {/* Success and Error Messages */}
           {successMessage && (
             <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
               {successMessage}
             </div>
           )}
-          
+
           {error && (
             <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
               {error}
             </div>
           )}
-          
+
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{complaint.title}</h1>
-              <p className="text-gray-600 mt-1">Complaint ID: #{complaint._id}</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {complaint.title}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Complaint ID: #{complaint._id}
+              </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(complaint.status)}`}>
-                {complaint.status.replace('-', ' ')}
+              <span
+                className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                  complaint.status
+                )}`}
+              >
+                {complaint.status.replace("-", " ")}
               </span>
-              <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(complaint.priority)}`}>
+              <span
+                className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(
+                  complaint.priority
+                )}`}
+              >
                 {complaint.priority}
               </span>
             </div>
@@ -231,22 +253,32 @@ export default function ComplaintView() {
             {/* Complaint Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Complaint Details</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Complaint Details
+                </h2>
               </div>
               <div className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      Description
+                    </h3>
                     <p className="text-gray-900">{complaint.description}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">Category</h3>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </h3>
                       <p className="text-gray-900">{complaint.category}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">Submitted Date</h3>
-                      <p className="text-gray-900">{formatDate(complaint.createdAt)}</p>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                        Submitted Date
+                      </h3>
+                      <p className="text-gray-900">
+                        {formatDate(complaint.createdAt)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -294,7 +326,9 @@ export default function ComplaintView() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm font-medium text-gray-900">{note.author}</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {note.author}
+                            </span>
                           </div>
                           <span className="text-xs text-gray-500">
                             {formatDate(note.timestamp)}
@@ -304,9 +338,11 @@ export default function ComplaintView() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">No notes yet</p>
+                    <p className="text-gray-500 text-center py-4">
+                      No notes yet
+                    </p>
                   )}
-                  
+
                   {/* Add Note Form */}
                   <div className="border-t pt-4">
                     <textarea
@@ -337,19 +373,30 @@ export default function ComplaintView() {
             {/* Citizen Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Citizen Information</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Citizen Information
+                </h2>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Name</h3>
-                  <p className="text-gray-900">{complaint.createdBy?.name || 'Anonymous'}</p>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </h3>
+                  <p className="text-gray-900">
+                    {complaint.createdBy?.name || "Anonymous"}
+                  </p>
                 </div>
                 {complaint.createdBy?.email && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Email</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </h3>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-gray-400" />
-                      <a href={`mailto:${complaint.createdBy.email}`} className="text-blue-600 hover:text-blue-700">
+                      <a
+                        href={`mailto:${complaint.createdBy.email}`}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
                         {complaint.createdBy.email}
                       </a>
                     </div>
@@ -368,11 +415,15 @@ export default function ComplaintView() {
               </div>
               <div className="p-6 space-y-3">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Address</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </h3>
                   <p className="text-gray-900">{complaint.address}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-1">Pincode</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-1">
+                    Pincode
+                  </h3>
                   <p className="text-gray-900">{complaint.pincode}</p>
                 </div>
               </div>
@@ -425,11 +476,15 @@ export default function ComplaintView() {
             {complaint.assignedTo && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">Assignment</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Assignment
+                  </h2>
                 </div>
                 <div className="p-6">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-1">Assigned To</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-1">
+                      Assigned To
+                    </h3>
                     <p className="text-gray-900">{complaint.assignedTo.name}</p>
                   </div>
                 </div>

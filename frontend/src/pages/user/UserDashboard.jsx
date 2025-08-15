@@ -27,7 +27,7 @@ export default function UserDashboard() {
           return;
         }
 
-        const response = await fetch("http://localhost:5000/api/complaints/user-stats", {
+        const response = await fetch("/api/complaints/user-stats", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -80,7 +80,6 @@ export default function UserDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-800 flex items-center space-x-2">
-                <span className="text-blue-600">👤</span>
                 <span>Citizen Dashboard</span>
               </h1>
               <p className="text-slate-600 mt-1">
